@@ -150,7 +150,7 @@
       }
       .modal-content {
           background: #0f1423; border: 1px solid #00f3ff; border-radius: 8px;
-          padding: 24px; width: 85%; max-width: 560px; max-height: 80vh;
+          padding: 24px; width: 85%; max-width: 580px; max-height: 80vh;
           overflow-y: auto; color: #ffffff; box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
           font-size: 12px; line-height: 1.6;
       }
@@ -206,28 +206,28 @@
     <!-- 使い方 ＆ クレジット表示用モーダル -->
     <div id="credits-modal" class="modal-overlay">
       <div class="modal-content">
-        <h2>📖 使い方マニュアル (HOW TO USE)</h2>
+        <h2>📖 使い方 ＆ VOICEVOX 起動手順マニュアル</h2>
         
-        <h3>1. 初期準備</h3>
+        <h3>1. GitHub Pages 経由で動作させる場合（推奨設定）</h3>
+        <p>GitHub Pages などの外部 Web サイト（<code>https://</code>）からローカルの VOICEVOX（<code>http://localhost:50021</code>）へ通信するため、CORS 制限許可フラグを付与して起動します。</p>
         <ul>
-          <li><strong>VOICEVOXの起動:</strong> PCで VOICEVOX アプリを起動してください。起動中は「ナースロボ＿タイプＴ」の音声で喋ります。（起動していない場合は自動でブラウザ標準音声になります）</li>
-          <li><strong>マイクの許可:</strong> ブラウザの「マイクの使用」を許可してください。</li>
+          <li><strong>ショートカット起動（おすすめ）:</strong> VOICEVOX インストール先の <code>vv-engine</code> フォルダ内にある <code>run.exe</code>（または <code>voicevox_engine.exe</code>）のショートカットを作成し、右クリック ➔ 「プロパティ」を開きます。「リンク先」の末尾に半角スペースを入れて <code>--cors_policy_mode all</code> を追記して起動します。</li>
+          <li><strong>コマンドプロンプト起動:</strong> 該当フォルダでターミナルを開き、<code>run.exe --cors_policy_mode all</code> を直接実行します。</li>
         </ul>
 
-        <h3>2. 基本操作</h3>
+        <h3>2. OBS ブラウザソースで読み込む場合（ローカル起動）</h3>
         <ul>
-          <li><strong>画面をクリック:</strong> 最初に画面をクリックすると、音声制限が解除され会話（マイク入力）がスタートします。話しかけのきっかけを作る「手動トーク」にも使えます。</li>
-          <li><code>LANG</code> <strong>ボタン:</strong> 日本語 (JA) と 英語 (EN) を切り替えます。</li>
-          <li><code>AVATAR</code> <strong>ボタン:</strong> アバターオーブの表示/非表示を切り替えます。</li>
+          <li>OBS のソース追加で「ブラウザ」を選択し、<strong>「ローカルファイル」</strong> にチェックを入れて PC 内の <code>index.html</code> を直接読み込ませます。（※ローカル起動の場合は CORS 許可オプションなしでも機能します）</li>
         </ul>
 
-        <h3>3. 音声コマンド（マイクで喋る言葉）</h3>
+        <h3>3. 基本操作 ＆ 音声コマンド一覧</h3>
         <ul>
-          <li><strong>会話の再開:</strong> 「話そうぜ」「喋ってくれ」「再開」など</li>
+          <li><strong>初期起動・アンロック:</strong> 画面を 1 回クリックしてブラウザの音声制限を解除します。</li>
+          <li><strong>会話の再開:</strong> 「話そうぜ」「喋ってくれ」「再開」「いいよ」など</li>
           <li><strong>一時停止 (MUTED):</strong> 「静かにして」「黙って」「喋るのやめて」など</li>
-          <li><strong>Wikipedia検索:</strong> 「〇〇について調べて」「〇〇を調べて」と発声するとWiki情報を要約して朗読します。</li>
-          <li><strong>スパチャ演出:</strong> 「スパチャ」「スーパーチャット」「感謝」などのキーワードで紙吹雪とファンファーレが流れます。</li>
-          <li><strong>カットイン演出:</strong> 「ここだ」「ここで決める」などのキーワードでカットイン演出が挿入されます。</li>
+          <li><strong>Wikipedia 検索機能:</strong> 「〇〇について調べて」「〇〇を調べて」と発声</li>
+          <li><strong>スパチャ演出:</strong> 「スパチャ」「スーパーチャット」「感謝」など</li>
+          <li><strong>カットイン演出:</strong> 「ここだ」「ここで決める」など</li>
         </ul>
 
         <h2>📜 CREDITS & LICENSES</h2>
