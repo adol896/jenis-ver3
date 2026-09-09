@@ -199,6 +199,9 @@
     <div id="credits-modal" class="modal-overlay">
       <div class="modal-content">
         <h2>CREDITS & LICENSES</h2>
+
+        <h3>VOICEVOX</h3>
+        <p>Voice Synthesis powered by <a href="https://voicevox.hiroshiba.jp/" target="_blank" rel="noopener">VOICEVOX: ナースロボ＿タイプＴ</a>.</p>
         
         <h3>kuromoji.js & IPADIC</h3>
         <p>JavaScript port of Kuromoji Japanese morphological analyzer.</p>
@@ -220,9 +223,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
         <h3>Sound Effects</h3>
         <p>Audio File: <code>剣を抜く.mp3</code></p>
         <p>Sound effect provided by [ 効果音ラボ].</p>
-
-        <h3>Browser Standard Web APIs</h3>
-        <p>Voice Synthesis & Speech Recognition powered by W3C Web Speech API standard features implemented in modern web browsers.</p>
 
         <div style="text-align: right; margin-top: 15px;">
           <button id="close-credits-btn" class="ui-btn">CLOSE</button>
@@ -641,25 +641,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
       }
 
       // =========================================================
-      // AI Assistant "Genis" (音声読み上げ & アバター制御)
+      // AI Assistant "Genis" (VOICEVOX 音声合成 ＆ アバター制御)
       // =========================================================
+      // VOICEVOX の設定
+      const VOICEVOX_HOST = 'http://localhost:50218';
+      // スピーカーID: ナースロボ＿タイプＴ (47:ノーマル, 48:楽々, 49:恐怖, 50:内緒話)
+      const VOICEVOX_SPEAKER_ID = 47;
+
       let isSpeaking = false;
       let currentLang = 'ja';
-      const synthesizer = window.speechSynthesis;
-      let availableVoices = [];
+      let currentVoiceAudio = null; // VOICEVOX再生中のAudioインスタンス
 
       let isEchoWikiLocked = false;
       let isAutomaticTalk = false;
-
-      function loadVoices() {
-        if (synthesizer) {
-          availableVoices = synthesizer.getVoices();
-        }
-      }
-      loadVoices();
-      if (synthesizer && synthesizer.onvoiceschanged !== undefined) {
-        synthesizer.onvoiceschanged = loadVoices;
-      }
 
       const avatarOrb = document.getElementById('avatar-orb');
       const aiStatusMsg = document.getElementById('ai-status-msg');
@@ -759,87 +753,129 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
         return chunks.filter(c => c.length > 0);
       }
 
-      function getVoiceForLang(langCode) {
-        const voices = availableVoices.length > 0 ? availableVoices : synthesizer.getVoices();
-        if (langCode === 'en') {
-          return voices.find(v => v.lang.startsWith('en') && (
-            v.name.includes('Google') || v.name.includes('Samantha')
-          )) || voices.find(v => v.lang.startsWith('en'));
-        } else {
-          return voices.find(v => v.lang.startsWith('ja') && (
-            v.name.includes('Google') || v.name.includes('Ayumi') || v.name.includes('Haruka') || v.name.includes('Nanami')
-          )) || voices.find(v => v.lang.startsWith('ja'));
+      // 現在流れている音声を停止する関数
+      function stopCurrentVoice() {
+        if (window.speechSynthesis && window.speechSynthesis.speaking) {
+          window.speechSynthesis.cancel();
+        }
+        if (currentVoiceAudio) {
+          currentVoiceAudio.pause();
+          currentVoiceAudio.currentTime = 0;
+          currentVoiceAudio = null;
         }
       }
 
-      function runAssistantVoice(fullText, lang, suppressSilenceRestart = false, bypassMute = false) {
-        if (synthesizer.speaking) synthesizer.cancel();
+      // VOICEVOX API を使って音声を再生する非同期関数
+      async function speakWithVoicevox(text) {
+        stopCurrentVoice();
+        
+        // 1. クエリ作成
+        const queryRes = await fetch(`${VOICEVOX_HOST}/audio_query?speaker=${VOICEVOX_SPEAKER_ID}&text=${encodeURIComponent(text)}`, {
+          method: 'POST'
+        });
+        if (!queryRes.ok) throw new Error("VOICEVOX audio_query エラー");
+        const queryData = await queryRes.json();
+
+        // 2. 音声合成
+        const synthRes = await fetch(`${VOICEVOX_HOST}/synthesis?speaker=${VOICEVOX_SPEAKER_ID}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(queryData)
+        });
+        if (!synthRes.ok) throw new Error("VOICEVOX synthesis エラー");
+
+        const audioBlob = await synthRes.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        currentVoiceAudio = audio;
+
+        return new Promise((resolve, reject) => {
+          audio.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+            currentVoiceAudio = null;
+            resolve();
+          };
+          audio.onerror = (e) => {
+            URL.revokeObjectURL(audioUrl);
+            currentVoiceAudio = null;
+            reject(e);
+          };
+          audio.play().catch(reject);
+        });
+      }
+
+      // 英語用またはVOICEVOX失敗時のブラウザ標準Web Speech APIフォールバック
+      function speakWithWebSpeech(text, lang) {
+        return new Promise((resolve) => {
+          stopCurrentVoice();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = (lang === 'en') ? 'en-US' : 'ja-JP';
+          utterance.rate = (lang === 'en') ? 1.05 : 1.15;
+          utterance.pitch = (lang === 'en') ? 1.15 : 1.35;
+          
+          utterance.onend = () => resolve();
+          utterance.onerror = () => resolve();
+          
+          window.speechSynthesis.speak(utterance);
+        });
+      }
+
+      async function runAssistantVoice(fullText, lang, suppressSilenceRestart = false, bypassMute = false) {
+        stopCurrentVoice();
 
         const textForSpeech = fullText.replace(/（[^）]*）|\([^)]*\)/g, '').trim();
 
         const subtitleChunks = splitTextForGenis(fullText, lang);
         const speechChunks = splitTextForGenis(textForSpeech, lang);
 
-        let currentChunkIndex = 0;
+        const maxChunks = Math.max(subtitleChunks.length, speechChunks.length);
 
-        function playNextChunk() {
-          if (currentChunkIndex >= subtitleChunks.length && currentChunkIndex >= speechChunks.length) {
-            isSpeaking = false;
-            if (!suppressSilenceRestart && !isForceMuted) {
-              resetSilenceTimer();
-            }
-            updateAvatarState();
-            aiStatusMsg.innerText = isForceMuted ? "MUTED" : "STANDBY";
+        isSpeaking = true;
+        stopSilenceTimer();
+        updateAvatarState();
+        aiStatusMsg.innerText = "TALKING";
+
+        for (let i = 0; i < maxChunks; i++) {
+          if (i < subtitleChunks.length) {
             aiSubtitleBox.classList.remove('active');
-
-            if (isAutomaticTalk) {
-              isEchoWikiLocked = false;
-              isAutomaticTalk = false;
-            }
-
-            safeStartRecognition();
-            return;
+            await new Promise(r => setTimeout(r, 150));
+            aiSubtitleBox.innerText = subtitleChunks[i] || "";
+            aiSubtitleBox.classList.add('active');
           }
 
-          if (currentChunkIndex < subtitleChunks.length) {
-            aiSubtitleBox.classList.remove('active');
-            setTimeout(() => {
-              aiSubtitleBox.innerText = subtitleChunks[currentChunkIndex] || "";
-              aiSubtitleBox.classList.add('active');
-            }, 150);
-          }
-
-          if (currentChunkIndex < speechChunks.length) {
-            const utterance = new SpeechSynthesisUtterance(speechChunks[currentChunkIndex]);
-            utterance.lang = (lang === 'en') ? 'en-US' : 'ja-JP';
-
-            const targetVoice = getVoiceForLang(lang);
-            if (targetVoice) utterance.voice = targetVoice;
-
-            utterance.rate = (lang === 'en') ? 1.05 : 1.15;
-            utterance.pitch = (lang === 'en') ? 1.15 : 1.35;
-
-            utterance.onstart = () => {
-              isSpeaking = true;
-              stopSilenceTimer();
-              updateAvatarState();
-              aiStatusMsg.innerText = "TALKING";
-            };
-
-            utterance.onend = () => {
-              currentChunkIndex++;
-              playNextChunk();
-            };
-            synthesizer.speak(utterance);
+          if (i < speechChunks.length) {
+            const speechText = speechChunks[i];
+            if (lang === 'ja') {
+              try {
+                // VOICEVOXでナースティーのボイスを再生
+                await speakWithVoicevox(speechText);
+              } catch (err) {
+                console.warn("VOICEVOX接続失敗のため、ブラウザ標準音声を使用します:", err);
+                await speakWithWebSpeech(speechText, lang);
+              }
+            } else {
+              // 英語モードはWeb Speech APIを使用
+              await speakWithWebSpeech(speechText, lang);
+            }
           } else {
-            setTimeout(() => {
-              currentChunkIndex++;
-              playNextChunk();
-            }, 2000);
+            await new Promise(r => setTimeout(r, 2000));
           }
         }
 
-        playNextChunk();
+        isSpeaking = false;
+        if (!suppressSilenceRestart && !isForceMuted) {
+          resetSilenceTimer();
+        }
+        updateAvatarState();
+        aiStatusMsg.innerText = isForceMuted ? "MUTED" : "STANDBY";
+        aiSubtitleBox.classList.remove('active');
+
+        if (isAutomaticTalk) {
+          isEchoWikiLocked = false;
+          isAutomaticTalk = false;
+        }
+
+        safeStartRecognition();
       }
 
       function triggerTalk() {
