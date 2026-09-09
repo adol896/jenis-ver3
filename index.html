@@ -137,10 +137,10 @@
           width: 100%; height: 100%; z-index: 70; pointer-events: none;
       }
 
-      /* クレジット表示用モーダル */
+      /* クレジット・説明表示用モーダル */
       .modal-overlay {
           position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-          background: rgba(0, 0, 0, 0.75);
+          background: rgba(0, 0, 0, 0.8);
           display: flex; justify-content: center; align-items: center;
           z-index: 100; opacity: 0; pointer-events: none;
           transition: opacity 0.3s ease;
@@ -150,12 +150,20 @@
       }
       .modal-content {
           background: #0f1423; border: 1px solid #00f3ff; border-radius: 8px;
-          padding: 20px; width: 80%; max-width: 520px; max-height: 75vh;
-          overflow-y: auto; color: #ffffff; box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+          padding: 24px; width: 85%; max-width: 560px; max-height: 80vh;
+          overflow-y: auto; color: #ffffff; box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
           font-size: 12px; line-height: 1.6;
       }
-      .modal-content h2 { font-size: 16px; color: #00f3ff; margin-top: 0; border-bottom: 1px solid #00f3ff; padding-bottom: 5px; }
-      .modal-content h3 { font-size: 14px; margin: 15px 0 5px 0; color: #ff9900; }
+      .modal-content h2 { 
+          font-size: 15px; color: #00f3ff; margin-top: 20px; border-bottom: 1px solid #00f3ff; 
+          padding-bottom: 4px; letter-spacing: 1px;
+      }
+      .modal-content h2:first-child { margin-top: 0; }
+      .modal-content h3 { font-size: 13px; margin: 12px 0 4px 0; color: #ff9900; }
+      .modal-content p { margin: 6px 0; }
+      .modal-content ul { margin: 6px 0; padding-left: 20px; }
+      .modal-content li { margin-bottom: 4px; }
+      .modal-content code { background: rgba(0,243,255,0.15); color: #00f3ff; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
       .modal-content a { color: #00f3ff; text-decoration: underline; }
       .modal-content pre { background: rgba(0,0,0,0.5); padding: 8px; border-radius: 4px; overflow-x: auto; font-size: 10px; color: #aaa; }
     </style>
@@ -178,7 +186,7 @@
       <div class="controls-row">
         <button id="toggle-lang-btn" class="ui-btn">LANG: JA</button>
         <button id="toggle-avatar-btn" class="ui-btn">AVATAR HIDE</button>
-        <button id="toggle-credits-btn" class="ui-btn">CREDITS</button>
+        <button id="toggle-credits-btn" class="ui-btn">CREDITS & GUIDE</button>
       </div>
     </div>
 
@@ -195,13 +203,38 @@
       <div id="sc-text-content">ありがとうございます！</div>
     </div>
 
-    <!-- クレジット表示用モーダル -->
+    <!-- 使い方 ＆ クレジット表示用モーダル -->
     <div id="credits-modal" class="modal-overlay">
       <div class="modal-content">
-        <h2>CREDITS & LICENSES</h2>
+        <h2>📖 使い方マニュアル (HOW TO USE)</h2>
+        
+        <h3>1. 初期準備</h3>
+        <ul>
+          <li><strong>VOICEVOXの起動:</strong> PCで VOICEVOX アプリを起動してください。起動中は「ナースロボ＿タイプＴ」の音声で喋ります。（起動していない場合は自動でブラウザ標準音声になります）</li>
+          <li><strong>マイクの許可:</strong> ブラウザの「マイクの使用」を許可してください。</li>
+        </ul>
+
+        <h3>2. 基本操作</h3>
+        <ul>
+          <li><strong>画面をクリック:</strong> 最初に画面をクリックすると、音声制限が解除され会話（マイク入力）がスタートします。話しかけのきっかけを作る「手動トーク」にも使えます。</li>
+          <li><code>LANG</code> <strong>ボタン:</strong> 日本語 (JA) と 英語 (EN) を切り替えます。</li>
+          <li><code>AVATAR</code> <strong>ボタン:</strong> アバターオーブの表示/非表示を切り替えます。</li>
+        </ul>
+
+        <h3>3. 音声コマンド（マイクで喋る言葉）</h3>
+        <ul>
+          <li><strong>会話の再開:</strong> 「話そうぜ」「喋ってくれ」「再開」など</li>
+          <li><strong>一時停止 (MUTED):</strong> 「静かにして」「黙って」「喋るのやめて」など</li>
+          <li><strong>Wikipedia検索:</strong> 「〇〇について調べて」「〇〇を調べて」と発声するとWiki情報を要約して朗読します。</li>
+          <li><strong>スパチャ演出:</strong> 「スパチャ」「スーパーチャット」「感謝」などのキーワードで紙吹雪とファンファーレが流れます。</li>
+          <li><strong>カットイン演出:</strong> 「ここだ」「ここで決める」などのキーワードでカットイン演出が挿入されます。</li>
+        </ul>
+
+        <h2>📜 CREDITS & LICENSES</h2>
 
         <h3>VOICEVOX</h3>
-        <p>Voice Synthesis powered by <a href="https://voicevox.hiroshiba.jp/" target="_blank" rel="noopener">VOICEVOX: ナースロボ＿タイプＴ</a>.</p>
+        <p>音声合成: <a href="https://voicevox.hiroshiba.jp/" target="_blank" rel="noopener">VOICEVOX: ナースロボ＿タイプＴ</a></p>
+        <p>キャラクターデザイン・音声: ナースロボ＿タイプＴ (規約に準拠して使用しています)</p>
         
         <h3>kuromoji.js & IPADIC</h3>
         <p>JavaScript port of Kuromoji Japanese morphological analyzer.</p>
@@ -222,9 +255,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
         <h3>Sound Effects</h3>
         <p>Audio File: <code>剣を抜く.mp3</code></p>
-        <p>Sound effect provided by [ 効果音ラボ].</p>
+        <p>Sound effect provided by [ 効果音ラボ ].</p>
 
-        <div style="text-align: right; margin-top: 15px;">
+        <div style="text-align: right; margin-top: 20px;">
           <button id="close-credits-btn" class="ui-btn">CLOSE</button>
         </div>
       </div>
@@ -650,7 +683,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
       let isSpeaking = false;
       let currentLang = 'ja';
-      let currentVoiceAudio = null; // VOICEVOX再生中のAudioインスタンス
+      let currentVoiceAudio = null;
 
       let isEchoWikiLocked = false;
       let isAutomaticTalk = false;
@@ -753,7 +786,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
         return chunks.filter(c => c.length > 0);
       }
 
-      // 現在流れている音声を停止する関数
       function stopCurrentVoice() {
         if (window.speechSynthesis && window.speechSynthesis.speaking) {
           window.speechSynthesis.cancel();
@@ -765,18 +797,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
         }
       }
 
-      // VOICEVOX API を使って音声を再生する非同期関数
       async function speakWithVoicevox(text) {
         stopCurrentVoice();
         
-        // 1. クエリ作成
         const queryRes = await fetch(`${VOICEVOX_HOST}/audio_query?speaker=${VOICEVOX_SPEAKER_ID}&text=${encodeURIComponent(text)}`, {
           method: 'POST'
         });
         if (!queryRes.ok) throw new Error("VOICEVOX audio_query エラー");
         const queryData = await queryRes.json();
 
-        // 2. 音声合成
         const synthRes = await fetch(`${VOICEVOX_HOST}/synthesis?speaker=${VOICEVOX_SPEAKER_ID}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -804,7 +833,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
         });
       }
 
-      // 英語用またはVOICEVOX失敗時のブラウザ標準Web Speech APIフォールバック
       function speakWithWebSpeech(text, lang) {
         return new Promise((resolve) => {
           stopCurrentVoice();
@@ -847,14 +875,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
             const speechText = speechChunks[i];
             if (lang === 'ja') {
               try {
-                // VOICEVOXでナースティーのボイスを再生
                 await speakWithVoicevox(speechText);
               } catch (err) {
                 console.warn("VOICEVOX接続失敗のため、ブラウザ標準音声を使用します:", err);
                 await speakWithWebSpeech(speechText, lang);
               }
             } else {
-              // 英語モードはWeb Speech APIを使用
               await speakWithWebSpeech(speechText, lang);
             }
           } else {
